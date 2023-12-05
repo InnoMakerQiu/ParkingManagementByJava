@@ -100,13 +100,11 @@ public class NetServiceToPeripheralDevice implements Runnable {
     private void processMessage(String message, PrintWriter writer) {
         // Assuming the message format is "licensePlate,in/out"
         String[] parts = message.split(",");
-        System.out.println(message);
         if (parts.length == 2) {
             String licensePlate = parts[0];
 
             // Process the vehicle entry/exit using the provided functions
             if (parts[1].equals("in")) {
-                System.out.println(parts[1]);
                 try {
                     vehicleProcessor.parkVehicle(licensePlate);
                     // Send response to the client
@@ -117,7 +115,6 @@ public class NetServiceToPeripheralDevice implements Runnable {
             }
             else if(parts[1].equals("out")){
                 try {
-                    System.out.println(parts[1]);
                     ParkingTicket ticket = vehicleProcessor.exitParking(licensePlate);
                     writer.println("Success!The cost of " + licensePlate + " is " + ticket.getFee());
                     financialManager.addBill(new Bill(ticket));
