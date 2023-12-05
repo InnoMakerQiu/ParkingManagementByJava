@@ -1,2 +1,12 @@
-# ParkingManangementByJava
-This is for the java work
+# 项目名称
+
+
+
+## 构建/安装
+
+在此提供构建或安装说明...
+
+## 使用示例
+
+```bash
+命令行示例或代码示例

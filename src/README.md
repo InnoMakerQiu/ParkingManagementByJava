@@ -27,7 +27,7 @@
 - **ParkingTicket:** 定义与停车相关的类。
 
 - **VIPUserManagement:** 管理 VIP 用户相关的类。
-- 
+- **SQLBasedFinancialManagement:** 通过数据库定义负责财务报表生成的相关类。
 
 ### 如何运行
 
