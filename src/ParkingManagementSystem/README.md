@@ -1,17 +1,15 @@
-## This part is only for telling you This section only shows you how to modify the code according to our standards.
+## 本部分仅展示如何根据我们的标准修改代码
 
-### FIRST:
-you can only modify the code in NetServiceToClientSide,
-If you feel that our parking system is not fully functional,
-please let me know and I will handle it, or you can help me 
-with it.
+### 第一点：
 
-### SECOND:
-if you modify the code,you should let me know where you 
-have modified by writing a complete comment,telling me
-which part you have added.
+您只能修改 NetServiceToClientSide 中的代码，如果您觉得我们的停车系统功能不完善，请告诉我，我会处理，或者您可以协助解决。
 
-### THIRD:
-Most importantly,write beautifully and with structure.
+### 第二点：
 
-### THANK YOU 
+如果您修改了代码，应通过编写完整的注释告诉我您在哪里进行了修改，指出您添加了哪些部分。
+
+### 第三点：
+
+最重要的是，写得清晰、结构良好。
+
+### 感谢您

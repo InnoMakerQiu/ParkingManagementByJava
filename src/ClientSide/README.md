@@ -1,27 +1,25 @@
-## Readme
+## README
 
 #### 项目结构：
 
-Client：这个是客户端gui界面的相关函数，定义了相关操作
+**Client：** 包含客户端 GUI 界面的相关函数，定义了相关操作。
 
-DisplayInterface：这个定义了客户端gui中要与服务段交互的相关函数。
+**DisplayInterface：** 定义了客户端 GUI 中与服务端交互的相关函数。
 
-ParkingManageClient：这个主要是模拟外设备实现向服务
+**ParkingManageClient：** 主要用于模拟外设备，实现与服务端的通信。
+
+
 
 #### 注意事项：
-尽量不要输入非法选项，
-虽然我们代码较为健壮，
-如果要测试非法选项，请在熟析代码之后进行
-防止不必要的资源泄露。
 
-
-
+尽量避免输入非法选项，虽然我们的代码相对健壮。如果需要测试非法选项，请在熟悉代码之后进行，以防止不必要的资源泄露。
 
 #### 修改规范：
-* try to change setDefaultCloseOperation to set it as DISPOSE_ON_CLOSE.
-* naming should be standardized.
-* annotations should be detailed.
-* Try to write operations on the same object together as much as possible
-* Try to place files and images in the same directory as much as possible.
-* Create anonymous classes and use lambda expressions as much as possible
-* A good habit of writing an interface is to first define the jFrame framework, define components and add components., define event listeners,
+
+- 尝试将 `setDefaultCloseOperation` 更改为 `DISPOSE_ON_CLOSE`。
+- 命名应当符合标准。
+- 注释应当详细明了。
+- 尽量将同一对象上的操作写在一起。
+- 尽量将文件和图像放在同一目录下。
+- 尽量使用匿名类和lambda表达式。
+- 定义接口的良好习惯是首先定义 JFrame 框架，定义组件并添加组件，定义事件监听器。
