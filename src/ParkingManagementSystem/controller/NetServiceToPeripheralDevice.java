@@ -12,23 +12,22 @@ import java.net.Socket;
 
 
 /**
- * NetServiceToPeripheralDevice class implements the Runnable interface
- * to create a server for communication with peripheral devices.
+ * NetServiceToPeripheralDevice 类实现了 Runnable 接口，用于创建与外部设备通信的服务器。
  */
 public class NetServiceToPeripheralDevice implements Runnable {
-    private ServerSocket serverSocket;
-    final int port;
-    final ParkingManagement vehicleProcessor;
-    final SQLBasedFinancialManagement financialManager;
+    private ServerSocket serverSocket; // 服务器套接字
+    final int port; // 服务器监听的端口号
+    final ParkingManagement vehicleProcessor; // 处理车辆的 ParkingManagement 实例
+    final SQLBasedFinancialManagement financialManager; // 管理财务记录的 FinancialManagement 实例
 
-    private boolean isRunning;
+    private boolean isRunning; // 控制服务器运行状态的标志
 
     /**
-     * Constructor for NetServiceToPeripheralDevice.
+     * NetServiceToPeripheralDevice 的构造方法。
      *
-     * @param port              The port number on which the server will listen.
-     * @param vehicleProcessor The ParkingManagement instance for vehicle processing.
-     * @param financialManager The FinancialManagement instance for managing financial records.
+     * @param port              服务器监听的端口号。
+     * @param vehicleProcessor 处理车辆的 ParkingManagement 实例。
+     * @param financialManager 管理财务记录的 FinancialManagement 实例。
      */
     public NetServiceToPeripheralDevice(int port, ParkingManagement vehicleProcessor,
                                         SQLBasedFinancialManagement financialManager) {
@@ -37,45 +36,46 @@ public class NetServiceToPeripheralDevice implements Runnable {
         this.financialManager = financialManager;
         this.isRunning = true;
         try {
+            // 创建服务器套接字并输出启动信息
             ServerSocket serverSocket = new ServerSocket(port);
-            System.out.println("Server started and listening on port " + port);
+            System.out.println("服务器已启动，正在监听端口：" + port);
             this.serverSocket = serverSocket;
         } catch (IOException e) {
-            System.out.println("The " + port + " is occupied.");
+            System.out.println(port + " 端口被占用。");
         }
     }
 
-    public void stop(){
+    /**
+     * 停止服务器的方法。
+     */
+    public void stop() {
         isRunning = false;
-        // Close the BufferedReader to interrupt the blocking readLine()
+        // 关闭 BufferedReader 以中断阻塞的 readLine()
     }
 
     /**
-     * Implementation of the run method from the Runnable interface.
-     * Waits for client connections and handles them by invoking handleClient.
+     * Runnable 接口的 run 方法实现。等待客户端连接并通过调用 handleClient 处理连接。
      */
     public void run() {
-        while(isRunning){
-            try(Socket clientSocket = serverSocket.accept()){
-                System.out.println("Client connected: " + clientSocket.getInetAddress());
+        while (isRunning) {
+            try (Socket clientSocket = serverSocket.accept()) {
+                System.out.println("客户端已连接：" + clientSocket.getInetAddress());
                 handleClient(clientSocket);
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        try{
+        try {
             serverSocket.close();
-        }catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     /**
-     * Handles the communication with a connected client.
+     * 处理与客户端的通信的方法。
      *
-     * @param clientSocket The socket for communication with the client.
+     * @param clientSocket 与客户端通信的套接字。
      */
     private void handleClient(Socket clientSocket) {
         try (
@@ -84,7 +84,7 @@ public class NetServiceToPeripheralDevice implements Runnable {
         ) {
             String message;
             while ((message = reader.readLine()) != null) {
-                if(!isRunning){
+                if (!isRunning) {
                     break;
                 }
                 processMessage(message, writer);
@@ -95,40 +95,39 @@ public class NetServiceToPeripheralDevice implements Runnable {
     }
 
     /**
-     * Processes a message received from the client, which is assumed to be in the format "licensePlate,in/out".
+     * 处理从客户端接收到的消息，假定消息格式为 "licensePlate,in/out"。
      *
-     * @param message The message received from the client.
-     * @param writer  The PrintWriter for sending responses to the client.
+     * @param message 接收到的来自客户端的消息。
+     * @param writer  用于向客户端发送响应的 PrintWriter。
      */
     private void processMessage(String message, PrintWriter writer) {
-        // Assuming the message format is "licensePlate,in/out"
+        // 假设消息格式为 "licensePlate,in/out"
         String[] parts = message.split(",");
         if (parts.length == 2) {
             String licensePlate = parts[0];
 
-            // Process the vehicle entry/exit using the provided functions
+            // 使用提供的函数处理车辆进入/离开
             if (parts[1].equals("in")) {
                 try {
                     vehicleProcessor.parkVehicle(licensePlate);
-                    // Send response to the client
-                    writer.println("Success!");
+                    // 向客户端发送响应
+                    writer.println("成功！");
                 } catch (Exception e) {
-                    writer.println("failure");
+                    writer.println("失败");
                 }
-            }
-            else if(parts[1].equals("out")){
+            } else if (parts[1].equals("out")) {
                 try {
                     ParkingTicket ticket = vehicleProcessor.exitParking(licensePlate);
-                    writer.println("Success!The cost of " + licensePlate + " is " + ticket.getFee());
+                    writer.println("成功！" + licensePlate + " 的费用为 " + ticket.getFee());
                     financialManager.addBill(new Bill(ticket));
                 } catch (Exception e) {
-                    writer.println("failure");
+                    writer.println("失败");
                 }
-            }else{
-                writer.println("failure");
+            } else {
+                writer.println("失败");
             }
-        }else{
-            writer.println("failure");
+        } else {
+            writer.println("失败");
         }
     }
 }

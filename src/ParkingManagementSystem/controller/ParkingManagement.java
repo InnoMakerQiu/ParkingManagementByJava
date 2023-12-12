@@ -1,6 +1,5 @@
 package ParkingManagementSystem.controller;
 
-import ParkingManagementSystem.model.ParkingException;
 import ParkingManagementSystem.model.ParkingLot;
 import ParkingManagementSystem.model.ParkingTicket;
 

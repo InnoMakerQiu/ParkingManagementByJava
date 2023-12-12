@@ -13,93 +13,95 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * NetServiceToClientSide class implements the Runnable interface
- * to create a server for communication with Client
+ * NetServiceToClientSide 类实现了 Runnable 接口，用于创建与客户端通信的服务器。
  */
 public class NetServiceToClientSide implements Runnable {
-    int port;
-    ParkingManagement vehicleProcessor;
-    ServerSocket serverSocket;
-    final SQLBasedFinancialManagement financialManager;
-    final NetServiceToPeripheralDevice netWork;
-    private boolean flag;
-
+    int port; // 服务器监听的端口号
+    ParkingManagement vehicleProcessor; // 处理车辆的 ParkingManagement 实例
+    ServerSocket serverSocket; // 服务器套接字
+    final SQLBasedFinancialManagement financialManager; // 管理财务记录的 FinancialManagement 实例
+    final NetServiceToPeripheralDevice netWork; // 与外部设备通信的 NetServiceToPeripheralDevice 实例
+    private boolean flag; // 控制服务器运行状态的标志
 
     /**
-     * Constructor for NetServiceToClientSide.
+     * NetServiceToClientSide 的构造方法。
      *
-     * @param port              The port number on which the server will listen.
-     * @param vehicleProcessor The ParkingManagement instance for vehicle processing.
-     * @param financialManager The FinancialManagement instance for managing financial records.
+     * @param port              服务器监听的端口号。
+     * @param vehicleProcessor 处理车辆的 ParkingManagement 实例。
+     * @param financialManager 管理财务记录的 FinancialManagement 实例。
+     * @param netWork           与外部设备通信的 NetServiceToPeripheralDevice 实例。
      */
     public NetServiceToClientSide(int port, ParkingManagement vehicleProcessor,
                                   SQLBasedFinancialManagement financialManager,
-                                  NetServiceToPeripheralDevice netWork){
+                                  NetServiceToPeripheralDevice netWork) {
         this.port = port;
         this.vehicleProcessor = vehicleProcessor;
         this.financialManager = financialManager;
         this.netWork = netWork;
         this.flag = true;
-        try{
+        try {
+            // 创建服务器套接字并输出启动信息
             ServerSocket serverSocket = new ServerSocket(port);
-            System.out.println("Server started and listening on port " + port);
+            System.out.println("服务器已启动，正在监听端口：" + port);
             this.serverSocket = serverSocket;
-        }catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void stop(){
+    /**
+     * 停止服务器的方法。
+     */
+    public void stop() {
         flag = false;
         netWork.stop();
         financialManager.closeFinancialManagement();
     }
 
     /**
-     * Implementation of the run method from the Runnable interface.
-     * Waits for client connections and handles them by invoking handleClient.
+     * Runnable 接口的 run 方法实现。等待客户端连接并通过调用 handleClient 处理连接。
      */
-    public void run(){
-            while(flag){
-                try{
-                    Socket clientSocket = serverSocket.accept();
-                    System.out.println("Client connected: " + clientSocket.getInetAddress());
-                    handleClient(clientSocket);
-                }catch(Exception e){
-                    e.printStackTrace();
-                }
+    public void run() {
+        while (flag) {
+            try {
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("客户端已连接：" + clientSocket.getInetAddress());
+                handleClient(clientSocket);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+        }
     }
 
-    /** Handles communication with a client
+    /**
+     * 处理与客户端的通信的方法。
      *
-     * @param clientSocket The socket for communication with client
+     * @param clientSocket 与客户端通信的套接字。
      */
     private void handleClient(Socket clientSocket) {
         try (
                 BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true)
-        ){
+        ) {
             String message;
             while ((message = reader.readLine()) != null) {
                 processMessage(message, writer);
             }
         } catch (IOException e) {
-            System.out.println("invalid disconnected");
+            System.out.println("无效的断开连接");
         }
-        System.out.println("Client disconnected");
+        System.out.println("客户端已断开连接");
     }
 
     /**
-     * Processes a message received from the client, which is assumed
-     * to be in the format "Type:data".
+     * 处理从客户端接收到的消息，假定消息格式为 "Type:data"。
      *
-     * @param message The message received from the client.
-     * @param writer  The PrintWriter for sending responses to the client.
+     * @param message 接收到的来自客户端的消息。
+     * @param writer  用于向客户端发送响应的 PrintWriter。
      */
-    private void processMessage(String message,PrintWriter writer) {
-        // Parse the request and process
-        System.out.println("receive message from client:"+message);//this part is for debug
+    private void processMessage(String message, PrintWriter writer) {
+        // 解析请求并处理
+        System.out.println("从客户端接收到消息：" + message); // 用于调试的输出
         String[] parts = message.split(":");
         if (parts.length == 2 && parts[0].equals("QUERY_ENTRY_TIME")) {
             String licensePlate = parts[1];
@@ -107,10 +109,9 @@ public class NetServiceToClientSide implements Runnable {
                 Date entryTime = vehicleProcessor.getEntryTimeByLicensePlate(licensePlate);
                 writer.println(entryTime.toString());
             } catch (Exception pe) {
-                writer.println("Don't found the vehicle");
+                writer.println("未找到车辆");
             }
-        }
-        else if(parts.length == 2 && parts[0].equals("QUERY_TOTAL_REVENUE")){
+        } else if (parts.length == 2 && parts[0].equals("QUERY_TOTAL_REVENUE")) {
             String[] timeParts = parts[1].split(",");
             String startTime = timeParts[0];
             String endTime = timeParts[1];
@@ -124,8 +125,7 @@ public class NetServiceToClientSide implements Runnable {
 
             // 直接发送数据
             writer.println("TOTAL_REVENUE:" + totalRevenue);
-        }
-        else if(parts.length == 2 && parts[0].equals("QUERY_VEHICLE_REVENUE")){
+        } else if (parts.length == 2 && parts[0].equals("QUERY_VEHICLE_REVENUE")) {
             String text;
             StringBuilder texts = new StringBuilder(); // 存储账单信息的列表
 
@@ -133,49 +133,45 @@ public class NetServiceToClientSide implements Runnable {
             String license = parts2[0];
             String number = parts2[1];
             int endValues = Integer.parseInt(number);
-            Date end,start;
-            if(endValues>100){
-                List<Bill> yearlyRecords = financialManager.getYearlyRecords(license,endValues);
+            Date end, start;
+            if (endValues > 100) {
+                List<Bill> yearlyRecords = financialManager.getYearlyRecords(license, endValues);
                 for (Bill bill : yearlyRecords) {
                     float revenue = bill.getFee();
                     start = bill.getEntryTime();
                     end = bill.getExitTime();
-                    text = license+","+start+","+end+","+revenue;
+                    text = license + "," + start + "," + end + "," + revenue;
                     texts.append(text).append("+");
                 }
-            }
-            else if(endValues<20){
-                List<Bill> monthlyRecords = financialManager.getMonthlyRecords(license,2023,endValues);
+            } else if (endValues < 20) {
+                List<Bill> monthlyRecords = financialManager.getMonthlyRecords(license, 2023, endValues);
                 for (Bill bill : monthlyRecords) {
                     start = bill.getEntryTime();
                     end = bill.getExitTime();
                     float revenue = bill.getFee();
-                    text = license+","+start+","+end+","+revenue;
+                    text = license + "," + start + "," + end + "," + revenue;
                     texts.append(text).append("+");
                 }
             }
             System.out.println(texts);
             writer.println(texts);
-        }
-        else if(parts[0].equals("QUERY_PARKING_LOT")){
+        } else if (parts[0].equals("QUERY_PARKING_LOT")) {
             ParkingLot parkingLot = vehicleProcessor.getParkingLot();
             int totalParkingSpaces = parkingLot.getTotalSpots();
             int availableSpaces = parkingLot.getAvailableSpots();
-            writer.println(totalParkingSpaces+","+availableSpaces);
-        }
-        else if(parts.length==3){//this is the password authentication
+            writer.println(totalParkingSpaces + "," + availableSpaces);
+        } else if (parts.length == 3) { // 这是密码验证
             String account = parts[1].split(",")[0];
             String password = parts[2];
-            if(account.equals("1")&&password.equals("1")){
-                writer.println("passed");
-            }else{
-                writer.println("No passed");
+            if (account.equals("1") && password.equals("1")) {
+                writer.println("通过验证");
+            } else {
+                writer.println("未通过验证");
             }
-        }
-        else if (parts[0].equals("shut down the parking system.")) {
+        } else if (parts[0].equals("关闭停车系统。")) {
             stop();
-        }else {
-            writer.println("Invalid request");
+        } else {
+            writer.println("无效的请求");
         }
     }
 
@@ -191,3 +187,4 @@ public class NetServiceToClientSide implements Runnable {
         return intArray;
     }
 }
+
