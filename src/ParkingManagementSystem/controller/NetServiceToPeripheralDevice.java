@@ -1,4 +1,7 @@
-package ParkingManagementSystem;
+package ParkingManagementSystem.controller;
+import ParkingManagementSystem.model.Bill;
+import ParkingManagementSystem.model.ParkingTicket;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;

@@ -1,4 +1,5 @@
-package ClientSide;
+package ClientSide.SystemClient;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;

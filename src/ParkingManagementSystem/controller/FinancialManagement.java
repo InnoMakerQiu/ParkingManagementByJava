@@ -1,4 +1,6 @@
-package ParkingManagementSystem;
+package ParkingManagementSystem.controller;
+
+import ParkingManagementSystem.model.Bill;
 
 import java.io.*;
 import java.text.ParseException;

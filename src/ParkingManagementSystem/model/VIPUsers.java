@@ -1,4 +1,4 @@
-package ParkingManagementSystem;
+package ParkingManagementSystem.model;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -37,10 +37,10 @@ class VIPUser {
     }
 }
 
-public class VIPUserManagement {
+public class VIPUsers {
     private List<VIPUser> vipUsers;
 
-    public VIPUserManagement() {
+    public VIPUsers() {
         vipUsers = new ArrayList<>();
     }
 

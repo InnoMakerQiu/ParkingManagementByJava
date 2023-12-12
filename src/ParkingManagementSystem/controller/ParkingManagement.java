@@ -1,49 +1,13 @@
-package ParkingManagementSystem;
+package ParkingManagementSystem.controller;
+
+import ParkingManagementSystem.model.ParkingException;
+import ParkingManagementSystem.model.ParkingLot;
+import ParkingManagementSystem.model.ParkingTicket;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 // 创建ParkingSpot类，表示停车位
-
-class ParkingLot {
-    final int totalSpots;
-    private int availableSpots;
-
-    public ParkingLot(int totalSpots) {
-        this.totalSpots = totalSpots;
-        this.availableSpots = totalSpots;
-    }
-
-    public boolean isFull() {
-        return availableSpots == 0;
-    }
-
-    public boolean isEmpty() {
-        return availableSpots == totalSpots;
-    }
-
-    public int getTotalSpots() {
-        return totalSpots;
-    }
-
-    public int getAvailableSpots() {
-        return availableSpots;
-    }
-    // 分配停车位
-    public boolean assignParkingSpot(){
-        if(isFull()){
-            return false;
-        }
-        availableSpots--;
-        return true;
-    }
-    // 释放停车位
-    public void releaseParkingSpot() {
-        availableSpots++;
-    }
-}
-
-
 
 
 /**
