@@ -164,9 +164,9 @@ public class NetServiceToClientSide implements Runnable {
             String account = parts[1].split(",")[0];
             String password = parts[2];
             if (account.equals("1") && password.equals("1")) {
-                writer.println("通过验证");
+                writer.println("passed");
             } else {
-                writer.println("未通过验证");
+                writer.println("no passed");
             }
         } else if (parts[0].equals("关闭停车系统。")) {
             stop();
