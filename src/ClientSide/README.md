@@ -2,13 +2,9 @@
 
 #### 项目结构：
 
-**Client：** 包含客户端 GUI 界面的相关函数，定义了相关操作。
+**SystemClient：** 主要实现系统用户客户端和服务端进行通信。
 
-**DisplayInterface：** 定义了客户端 GUI 中与服务端交互的相关函数。
-
-**ParkingManageClient：** 主要用于模拟外设备，实现与服务端的通信。
-
-
+**PeripheralDeviceClient：** 主要用于模拟边缘设备，比如车牌号扫描机器，实现与服务端的通信。
 
 #### 注意事项：
 
