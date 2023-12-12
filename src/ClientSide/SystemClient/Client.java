@@ -43,7 +43,7 @@ public class Client {
 		JButton jbLogin;
 
 		frame = new JFrame();
-		jlbTop = new JLabel(new ImageIcon("src/1.png"));
+		jlbTop = new JLabel(new ImageIcon("images/parking1.png"));
 		jlbTop.setBounds(0, 0, 480, 160);
 
 		jp = new JPanel();
