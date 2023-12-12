@@ -168,7 +168,7 @@ public class NetServiceToClientSide implements Runnable {
             } else {
                 writer.println("no passed");
             }
-        } else if (parts[0].equals("关闭停车系统。")) {
+        } else if (parts[0].equals("shut down the parking system.")) {
             stop();
         } else {
             writer.println("无效的请求");
