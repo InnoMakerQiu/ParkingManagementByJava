@@ -4,61 +4,6 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * VIPUser 类表示VIP用户，包含用户的余额和车牌号信息。
- */
-class VIPUser {
-    private double balance; // 用户余额
-    private final String licensePlate; // 车牌号
-
-    /**
-     * 构造方法，创建 VIPUser 的实例。
-     *
-     * @param licensePlate 车牌号。
-     * @param balance      用户余额。
-     */
-    public VIPUser(String licensePlate, double balance) {
-        this.balance = balance;
-        this.licensePlate = licensePlate;
-    }
-
-    /**
-     * 获取用户余额。
-     *
-     * @return 用户余额。
-     */
-    public double getBalance() {
-        return balance;
-    }
-
-    /**
-     * 获取用户车牌号。
-     *
-     * @return 用户车牌号。
-     */
-    public String getLicensePlate() {
-        return licensePlate;
-    }
-
-    /**
-     * 充值用户余额。
-     *
-     * @param amount 充值金额。
-     */
-    public void increaseTheBalance(double amount) {
-        balance += amount;
-    }
-
-    /**
-     * 扣除用户余额。
-     *
-     * @param amount 扣费金额。
-     */
-    public void reduceTheAmount(double amount) {
-        balance -= amount;
-    }
-}
-
-/**
  * VIPUsers 类表示所有VIP用户的集合，提供了添加、充值、获取用户和获取所有用户的方法。
  */
 public class VIPUsers {
@@ -77,7 +22,7 @@ public class VIPUsers {
      * @param licensePlate 车牌号。
      * @param amount       用户初始余额。
      */
-    public void addVIPUser(String licensePlate, double amount) {
+    public void addVIPUser(String licensePlate, float amount) {
         VIPUser user = new VIPUser(licensePlate, amount);
         vipUsers.add(user);
     }
@@ -89,7 +34,7 @@ public class VIPUsers {
      * @param amount       充值金额。
      * @throws VIPUserNotFoundException 如果未找到匹配的VIP用户。
      */
-    public void topUpBalance(String licensePlate, double amount) throws VIPUserNotFoundException {
+    public void topUpBalance(String licensePlate, float amount) throws VIPUserNotFoundException {
         VIPUser vipUser = getVIPUserByLicensePlate(licensePlate);
         vipUser.increaseTheBalance(amount);
     }
@@ -101,7 +46,8 @@ public class VIPUsers {
      * @return 匹配的VIP用户。
      * @throws VIPUserNotFoundException 如果未找到匹配的VIP用户。
      */
-    VIPUser getVIPUserByLicensePlate(String licensePlate) throws VIPUserNotFoundException {
+    private VIPUser getVIPUserByLicensePlate(String licensePlate)
+            throws VIPUserNotFoundException {
         for (VIPUser user : vipUsers) {
             if (user.getLicensePlate().equals(licensePlate)) {
                 return user;
@@ -109,6 +55,58 @@ public class VIPUsers {
         }
         throw new VIPUserNotFoundException("未找到VIP用户"); // 如果未找到匹配的VIP用户
     }
+
+    /**
+     * 根据车牌号判断是否是VIP用户。
+     *
+     * @param licensePlate 车牌号
+     * @return 是否为VIP用户
+     */
+    public boolean isVIPUser(String licensePlate){
+        for(VIPUser user : vipUsers){
+            if(user.getLicensePlate().equals(licensePlate)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 减少vip用户余额
+     *
+     * @param licensePlate 车牌号
+     * @param amount 减少用户的余额大小。
+     * @return 如果余额充足，为真，否则为假
+     */
+    public boolean reduceBalance(String licensePlate,float amount){
+        try {
+            VIPUser vipUser = getVIPUserByLicensePlate(licensePlate);
+            if (vipUser.getBalance()>amount){
+                vipUser.reduceTheAmount(amount);
+                return true;
+            }else{
+                return false;
+            }
+        }catch(VIPUserNotFoundException e){
+            return false;
+        }
+    }
+
+    /**
+     * 查询指定车牌号VIP用户的余额
+     *
+     * @param licensePlate 车牌号
+     * @return 余额
+     */
+    public float queryTheAmountOfVIPUser(String licensePlate){
+        try{
+            VIPUser vipUser = getVIPUserByLicensePlate(licensePlate);
+            return vipUser.getBalance();
+        } catch (VIPUserNotFoundException e) {
+            return 0;
+        }
+    }
+
 
     /**
      * 获取所有VIP用户。

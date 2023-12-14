@@ -12,6 +12,10 @@ import java.net.Socket;
 import java.util.Date;
 import java.util.List;
 
+import ParkingManagementSystem.model.VIPUsers;
+import org.json.*;
+
+
 /**
  * NetServiceToClientSide 类实现了 Runnable 接口，用于创建与客户端通信的服务器。
  */
@@ -19,6 +23,7 @@ public class NetServiceToClientSide implements Runnable {
     int port; // 服务器监听的端口号
     ParkingManagement vehicleProcessor; // 处理车辆的 ParkingManagement 实例
     ServerSocket serverSocket; // 服务器套接字
+    final VIPUsers vipUsers; //管理vip用户实例
     final SQLBasedFinancialManagement financialManager; // 管理财务记录的 FinancialManagement 实例
     final NetServiceToPeripheralDevice netWork; // 与外部设备通信的 NetServiceToPeripheralDevice 实例
     private boolean flag; // 控制服务器运行状态的标志
@@ -33,12 +38,13 @@ public class NetServiceToClientSide implements Runnable {
      */
     public NetServiceToClientSide(int port, ParkingManagement vehicleProcessor,
                                   SQLBasedFinancialManagement financialManager,
-                                  NetServiceToPeripheralDevice netWork) {
+                                  NetServiceToPeripheralDevice netWork,VIPUsers vipUsers) {
         this.port = port;
         this.vehicleProcessor = vehicleProcessor;
         this.financialManager = financialManager;
         this.netWork = netWork;
         this.flag = true;
+        this.vipUsers = vipUsers;
         try {
             // 创建服务器套接字并输出启动信息
             ServerSocket serverSocket = new ServerSocket(port);
@@ -94,7 +100,26 @@ public class NetServiceToClientSide implements Runnable {
     }
 
     /**
-     * 处理从客户端接收到的消息，假定消息格式为 "Type:data"。
+     * 处理从客户端接收到的消息,消息一般采用json格式，假定消息格式为
+     * {TYPE:TYPE,DATA:DATA}
+     * 现在需要处理的数据消息格式有
+     * 接收到{TYPE:QUERY_ENTER_TIME,DATA:Date}
+     * 发送{TYPE:ENTRY_TIME,DATA:entryTime}
+     * 接受到{TYPE:QUERY_TOTAL_REVENUE,DATA:[startTime,endTime]}
+     * 发送{TYPE:TOTAL_REVENUE,DATA:totalRevenue}
+     * 接收到{TYPE:QUERY_VEHICLE_REVENUE,DATA:licensePlate+","+IntValue}
+     * 发送{TYPE:VEHICLE_REVENUE,DATA:billList}
+     * 接收到{TYPE:QUERY_PARKING_LOT}
+     * 发送{TYPE:PARKING_LOT,DATA:totalParkingSpaces+","+availableSpaces}
+     * 接受到{TYPE:ADD_VIP_USER,DATA:licensePlate+","+amount}
+     * 发送{TYPE:SUCCESS}
+     * 接受到{TYPE:SHOW_VIP_USERS}
+     * 发送{TYPE:VIP_USERS,DATA:vipUsersList}
+     * 接受到{TYPE:AUTHENTICATION,DATA:account+","+password}
+     * 发送{TYPE:PASS}OR{TYPE:NO_PASS}
+     * 接受到{TYPE:SHUT_DOWN}
+     * 不发送
+     * 如果数据格式不匹配{TYPE:INVALID_REQUEST}
      *
      * @param message 接收到的来自客户端的消息。
      * @param writer  用于向客户端发送响应的 PrintWriter。
@@ -102,76 +127,124 @@ public class NetServiceToClientSide implements Runnable {
     private void processMessage(String message, PrintWriter writer) {
         // 解析请求并处理
         System.out.println("从客户端接收到消息：" + message); // 用于调试的输出
-        String[] parts = message.split(":");
-        if (parts.length == 2 && parts[0].equals("QUERY_ENTRY_TIME")) {
-            String licensePlate = parts[1];
-            try {
-                Date entryTime = vehicleProcessor.getEntryTimeByLicensePlate(licensePlate);
-                writer.println(entryTime.toString());
-            } catch (Exception pe) {
-                writer.println("未找到车辆");
-            }
-        } else if (parts.length == 2 && parts[0].equals("QUERY_TOTAL_REVENUE")) {
-            String[] timeParts = parts[1].split(",");
-            String startTime = timeParts[0];
-            String endTime = timeParts[1];
-            int[] startValues = convertStringArrayToIntArray(startTime.split("/"));
-            int[] endValues = convertStringArrayToIntArray(endTime.split("/"));
+        try {
+            JSONObject jsonObject = new JSONObject(message);
+            String type = jsonObject.getString("TYPE");
 
-            // 调用函数并发送数据
-            double totalRevenue = financialManager.getTotalRevenueForMonthRange(
-                    startValues[0], startValues[1], startValues[2],
-                    endValues[0], endValues[1], endValues[2]);
+            //根据不同类型来执行不同逻辑
+            if (type.equals("QUERY_ENTRY_TIME")) {
+                Object dataObject = jsonObject.get("DATA");
+                String licensePlate = dataObject.toString();
+                try {
+                    Date entryTime = vehicleProcessor.getEntryTimeByLicensePlate(licensePlate);
 
-            // 直接发送数据
-            writer.println("TOTAL_REVENUE:" + totalRevenue);
-        } else if (parts.length == 2 && parts[0].equals("QUERY_VEHICLE_REVENUE")) {
-            String text;
-            StringBuilder texts = new StringBuilder(); // 存储账单信息的列表
-
-            String[] parts2 = parts[1].split(",");
-            String license = parts2[0];
-            String number = parts2[1];
-            int endValues = Integer.parseInt(number);
-            Date end, start;
-            if (endValues > 100) {
-                List<Bill> yearlyRecords = financialManager.getYearlyRecords(license, endValues);
-                for (Bill bill : yearlyRecords) {
-                    float revenue = bill.getFee();
-                    start = bill.getEntryTime();
-                    end = bill.getExitTime();
-                    text = license + "," + start + "," + end + "," + revenue;
-                    texts.append(text).append("+");
-                }
-            } else if (endValues < 20) {
-                List<Bill> monthlyRecords = financialManager.getMonthlyRecords(license, 2023, endValues);
-                for (Bill bill : monthlyRecords) {
-                    start = bill.getEntryTime();
-                    end = bill.getExitTime();
-                    float revenue = bill.getFee();
-                    text = license + "," + start + "," + end + "," + revenue;
-                    texts.append(text).append("+");
+                    JSONObject sendMessage = new JSONObject();
+                    sendMessage.put("TYPE", "ENTRY_TIME");
+                    sendMessage.put("DATA", entryTime);
+                    writer.println(sendMessage);
+                } catch (Exception pe) {
+                    writer.println("{\"TYPE\":\"FAILURE\"}");
                 }
             }
-            System.out.println(texts);
-            writer.println(texts);
-        } else if (parts[0].equals("QUERY_PARKING_LOT")) {
-            ParkingLot parkingLot = vehicleProcessor.getParkingLot();
-            int totalParkingSpaces = parkingLot.getTotalSpots();
-            int availableSpaces = parkingLot.getAvailableSpots();
-            writer.println(totalParkingSpaces + "," + availableSpaces);
-        } else if (parts.length == 3) { // 这是密码验证
-            String account = parts[1].split(",")[0];
-            String password = parts[2];
-            if (account.equals("1") && password.equals("1")) {
-                writer.println("passed");
+            else if (type.equals("QUERY_TOTAL_REVENUE")) {
+                try{
+                    Object dataObject = jsonObject.get("DATA");
+                    JSONArray dataArray = (JSONArray) dataObject;
+                    String startTime = dataArray.getString(0);
+                    String endTime = dataArray.getString(1);
+                    int[] startValues = convertStringArrayToIntArray(startTime.split("/"));
+                    int[] endValues = convertStringArrayToIntArray(endTime.split("/"));
+
+                    double totalRevenue = financialManager.getTotalRevenueForMonthRange(
+                            startValues[0], startValues[1], startValues[2],
+                            endValues[0], endValues[1], endValues[2]);
+
+                    // 直接发送数据
+                    JSONObject sendMessage = new JSONObject();
+                    sendMessage.put("TYPE","TOTAL_REVENUE");
+                    sendMessage.put("DATA",totalRevenue);
+
+                    writer.println(sendMessage);
+                }catch(Exception e){
+                    writer.println("{\"TYPE\":\"FAILURE\"}");
+                }
+            }
+            else if (type.equals("QUERY_VEHICLE_REVENUE")) {
+                Object dataObject = jsonObject.get("DATA");
+
+                String[] parts2 = dataObject.toString().split(",");
+                String license = parts2[0];
+                String number = parts2[1];
+                int endValues = Integer.parseInt(number);
+                List<Bill> records = null;
+                if (endValues > 100) {
+                    records = financialManager.getYearlyRecords(license, endValues);
+
+                } else if (endValues < 20) {
+                    records = financialManager.getMonthlyRecords(license, 2023, endValues);
+                }
+                try{
+                    JSONArray jsonArray = new JSONArray(records);
+                    JSONObject sendMessage = new JSONObject();
+                    sendMessage.put("TYPE","VEHICLE_REVENUE");
+                    sendMessage.put("DATA",jsonArray);
+                    writer.println(records);
+                }catch(Exception e){
+                    writer.println("{\"TYPE\":\"FAILURE\"}");
+                }
+            }
+            else if (type.equals("QUERY_PARKING_LOT")) {
+                ParkingLot parkingLot = vehicleProcessor.getParkingLot();
+                int totalParkingSpaces = parkingLot.getTotalSpots();
+                int availableSpaces = parkingLot.getAvailableSpots();
+                try{
+                    JSONObject sendMessage = new JSONObject();
+                    sendMessage.put("TYPE","PARKING_LOT");
+                    sendMessage.put("DATA",totalParkingSpaces+","+availableSpaces);
+                    writer.println(sendMessage);
+                }catch(Exception e){
+                    writer.println("{\"TYPE\":\"FAILURE\"}");
+                }
+            }
+            else if (type.equals("ADD_VIP_USER")) {
+                Object dataObject = jsonObject.get("DATA");
+                String licensePlate = dataObject.toString().split(",")[0];
+                String amount = dataObject.toString().split(",")[1];
+                if(vipUsers.isVIPUser(licensePlate)){
+                    vipUsers.topUpBalance(licensePlate, Float.parseFloat(amount));
+                }else{
+                    vipUsers.addVIPUser(licensePlate,Float.parseFloat(amount));
+                }
+                writer.println("{\"TYPE\":\"ADD SUCCESS\"}");
+            }
+            else if (type.equals("SHOW_VIP_USERS")){
+                try{
+                    JSONObject sendMessage = new JSONObject();
+                    JSONArray jsonArray = new JSONArray(vipUsers);
+                    sendMessage.put("TYPE","VIP_USERS");
+                    sendMessage.put("DATA",jsonArray);
+                    writer.println(sendMessage);
+                }catch(Exception e){
+                    writer.println("{\"TYPE\":\"FAILURE\"}");
+                }
+            }
+            else if (type.equals("AUTHENTICATION")) { // 这是密码验证
+                Object dataObject = jsonObject.get("DATA");
+                String[] parts = dataObject.toString().split(",");
+                String account = parts[0];
+                String password = parts[1];
+                if (account.equals("1") && password.equals("1")) {
+                    writer.println("{\"TYPE\":\"PASS\"}");
+                } else {
+                    writer.println("{\"TYPE\":\"NO_PASS\"}");
+                }
+            } else if (type.equals("SHUT_DOWN")) {
+                stop();
             } else {
-                writer.println("no passed");
+                writer.println("{\"TYPE\":\"INVALID REQUEST\"}");
             }
-        } else if (parts[0].equals("shut down the parking system.")) {
-            stop();
-        } else {
-            writer.println("无效的请求");
+        }catch(Exception e){
+            e.printStackTrace();
         }
     }
 

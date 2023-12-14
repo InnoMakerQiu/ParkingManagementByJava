@@ -6,6 +6,9 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.String;
+import java.util.Objects;
+
+import org.json.*;
 
 
 /**
@@ -57,6 +60,32 @@ public class DisplayInterface {
                     JOptionPane.ERROR_MESSAGE);
         }
     }
+
+
+    /**
+     * Simulates password authentication by sending user credentials to the server.
+     * Replace this method with your actual authentication logic.\
+     * 发送{TYPE:AUTHENTICATION,DATA:account+","+password}
+     * 接收到{TYPE:PASS}OR{TYPE:NO_PASS}
+     *
+     * @param username The entered username.
+     * @param password The entered password.
+     * @return True if authentication is successful, false otherwise.
+     */
+    public static boolean passwordAuthentication(String username, String password) {
+        // Replace the following lines with your authentication logic
+        // (e.g., contacting a server for authentication)
+
+        JSONObject sendMessage = new JSONObject();
+        sendMessage.put("TYPE","AUTHENTICATION");
+        sendMessage.put("DATA",username + "," + password);
+        Client.sendMessage(sendMessage.toString());
+        JSONObject jsonObject = new JSONObject(Objects.requireNonNull(Client.receiveMessage()));
+        String isPassed = jsonObject.getString("TYPE");
+        System.out.println(isPassed);
+        return isPassed != null && isPassed.equals("PASS");
+    }
+
     public static void queryTotalRevenue(String startTime,String endTime){
         Client.sendMessage("QUERY_TOTAL_REVENUE:"+startTime+","+endTime);
         String revenue = Client.receiveMessage();
@@ -69,6 +98,8 @@ public class DisplayInterface {
                     JOptionPane.ERROR_MESSAGE);
         }
     }
+
+
 
     public static void queryVehicleRevenue(String license, String number, JFrame jf){
         jf.setVisible(false);
@@ -100,7 +131,7 @@ public class DisplayInterface {
     }
 
     public static void shutDownTheParkingSystem(){
-        Client.sendMessage("shut down the parking system.");
+        Client.sendMessage("{\"TYPE\":\"SHUT_DOWN\"}");
     }
 
     private static JFrame getFrame(String[][] data) {

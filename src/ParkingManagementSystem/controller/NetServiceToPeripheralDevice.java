@@ -1,6 +1,7 @@
 package ParkingManagementSystem.controller;
 import ParkingManagementSystem.model.Bill;
 import ParkingManagementSystem.model.ParkingTicket;
+import ParkingManagementSystem.model.VIPUsers;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,6 +18,7 @@ import java.net.Socket;
 public class NetServiceToPeripheralDevice implements Runnable {
     private ServerSocket serverSocket; // 服务器套接字
     final int port; // 服务器监听的端口号
+    final VIPUsers vipUsers;// 管理VIP用户列表实例
     final ParkingManagement vehicleProcessor; // 处理车辆的 ParkingManagement 实例
     final SQLBasedFinancialManagement financialManager; // 管理财务记录的 FinancialManagement 实例
 
@@ -30,11 +32,12 @@ public class NetServiceToPeripheralDevice implements Runnable {
      * @param financialManager 管理财务记录的 FinancialManagement 实例。
      */
     public NetServiceToPeripheralDevice(int port, ParkingManagement vehicleProcessor,
-                                        SQLBasedFinancialManagement financialManager) {
+                                        SQLBasedFinancialManagement financialManager,VIPUsers vipUsers) {
         this.port = port;
         this.vehicleProcessor = vehicleProcessor;
         this.financialManager = financialManager;
         this.isRunning = true;
+        this.vipUsers = vipUsers;
         try {
             // 创建服务器套接字并输出启动信息
             ServerSocket serverSocket = new ServerSocket(port);
@@ -79,7 +82,8 @@ public class NetServiceToPeripheralDevice implements Runnable {
      */
     private void handleClient(Socket clientSocket) {
         try (
-                BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(clientSocket.getInputStream()));
                 PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true)
         ) {
             String message;
@@ -118,7 +122,14 @@ public class NetServiceToPeripheralDevice implements Runnable {
             } else if (parts[1].equals("out")) {
                 try {
                     ParkingTicket ticket = vehicleProcessor.exitParking(licensePlate);
-                    writer.println("成功！" + licensePlate + " 的费用为 " + ticket.getFee());
+                    if(vipUsers.reduceBalance(licensePlate,ticket.getFee())){
+                        writer.println("成功！您好，vip用户，你的用户余额还剩"+
+                                vipUsers.queryTheAmountOfVIPUser(licensePlate));
+                        ticket.setFee(ticket.getFee()/2);
+                    }
+                    else{
+                        writer.println("成功！" + licensePlate + " 的费用为 " + ticket.getFee());
+                    }
                     financialManager.addBill(new Bill(ticket));
                 } catch (Exception e) {
                     writer.println("失败");

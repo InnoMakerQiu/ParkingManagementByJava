@@ -35,7 +35,7 @@ class ButtonListenerOfLogin implements ActionListener {
         String password = this.password.getText();
 
         // Perform authentication (Replace with your authentication logic)
-        if (passwordAuthentication(username, password)) {
+        if (DisplayInterface.passwordAuthentication(username, password)) {
             // Open the main menu window upon successful login
             new Welcome(jf);
         } else {
@@ -43,22 +43,5 @@ class ButtonListenerOfLogin implements ActionListener {
             JOptionPane jop = new JOptionPane();
             JOptionPane.showMessageDialog(jop, "信息输入有误，请重新输入");
         }
-    }
-
-    /**
-     * Simulates password authentication by sending user credentials to the server.
-     * Replace this method with your actual authentication logic.
-     *
-     * @param username The entered username.
-     * @param password The entered password.
-     * @return True if authentication is successful, false otherwise.
-     */
-    private boolean passwordAuthentication(String username, String password) {
-        // Replace the following lines with your authentication logic
-        // (e.g., contacting a server for authentication)
-        Client.sendMessage("account:" + username + ", password:" + password);
-        String isPassed = Client.receiveMessage();
-        System.out.println(isPassed);
-        return isPassed != null && isPassed.equals("passed");
     }
 }
