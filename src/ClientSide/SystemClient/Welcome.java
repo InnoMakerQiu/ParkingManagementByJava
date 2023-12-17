@@ -31,25 +31,29 @@ public class Welcome {
         JButton j1 = new JButton("车辆信息查询");
         JButton j2 = new JButton("在库车辆管理");
         JButton j3 = new JButton("生成账单报表");
-        JButton j4 = new JButton("关闭停车系统");
+        JButton j4 = new JButton("VIP用户查询和充值");
+        JButton j5 = new JButton("关闭停车系统");
 
         j0.setFont(new Font("宋体", Font.BOLD, 10));
         j1.setFont(new Font("宋体", Font.BOLD, 10));
         j2.setFont(new Font("宋体", Font.BOLD, 10));
         j3.setFont(new Font("宋体", Font.BOLD, 10));
         j4.setFont(new Font("宋体", Font.BOLD, 10));
+        j5.setFont(new Font("宋体", Font.BOLD, 10));
 
         j0.setBounds(110, 10, 180, 30);
         j1.setBounds(110, 40, 180, 30);
         j2.setBounds(110, 70, 180, 30);
         j3.setBounds(110, 100, 180, 30);
         j4.setBounds(110, 130, 180, 30);
+        j5.setBounds(110, 160, 180, 30);
 
         jf.add(j0);
         jf.add(j1);
         jf.add(j2);
         jf.add(j3);
         jf.add(j4);
+        jf.add(j5);
 
 
         // Button listeners for different operations
@@ -59,13 +63,15 @@ public class Welcome {
         ButtonListenerOfManagement b2 = new ButtonListenerOfManagement(jf);
         j2.addActionListener(b2);
 
-        ButtonListenerOfBillReport b3 =
-                new ButtonListenerOfBillReport(jf);
+        ButtonListenerOfBillReport b3 = new ButtonListenerOfBillReport(jf);
         j3.addActionListener(b3);
 
-        ButtonListenerOfShuttingDownTheSystem b4 =
-                new ButtonListenerOfShuttingDownTheSystem(jf);
+        ButtonListenerOfVIPUsers b4 = new ButtonListenerOfVIPUsers(jf);
         j4.addActionListener(b4);
+
+        ButtonListenerOfShuttingDownTheSystem b5 = new ButtonListenerOfShuttingDownTheSystem(jf);
+        j5.addActionListener(b5);
+
 
         jf.addWindowListener(new WindowAdapter() {
             @Override
@@ -76,3 +82,4 @@ public class Welcome {
         });
     }
 }
+

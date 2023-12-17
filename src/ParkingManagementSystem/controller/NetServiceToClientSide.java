@@ -126,6 +126,7 @@ public class NetServiceToClientSide implements Runnable {
      */
     private void processMessage(String message, PrintWriter writer) {
         // 解析请求并处理
+        // 解析请求并处理
         System.out.println("从客户端接收到消息：" + message); // 用于调试的输出
         try {
             JSONObject jsonObject = new JSONObject(message);
@@ -162,7 +163,7 @@ public class NetServiceToClientSide implements Runnable {
                     // 直接发送数据
                     JSONObject sendMessage = new JSONObject();
                     sendMessage.put("TYPE","TOTAL_REVENUE");
-                    sendMessage.put("DATA",totalRevenue);
+                    sendMessage.put("DATA",String.valueOf(totalRevenue));
 
                     writer.println(sendMessage);
                 }catch(Exception e){
@@ -184,11 +185,11 @@ public class NetServiceToClientSide implements Runnable {
                     records = financialManager.getMonthlyRecords(license, 2023, endValues);
                 }
                 try{
-                    JSONArray jsonArray = new JSONArray(records);
+                    //JSONArray jsonArray = new JSONArray(records);
                     JSONObject sendMessage = new JSONObject();
                     sendMessage.put("TYPE","VEHICLE_REVENUE");
-                    sendMessage.put("DATA",jsonArray);
-                    writer.println(records);
+                    sendMessage.put("DATA",String.valueOf(records));
+                    writer.println(sendMessage);
                 }catch(Exception e){
                     writer.println("{\"TYPE\":\"FAILURE\"}");
                 }
@@ -217,14 +218,19 @@ public class NetServiceToClientSide implements Runnable {
                 }
                 writer.println("{\"TYPE\":\"ADD SUCCESS\"}");
             }
-            else if (type.equals("SHOW_VIP_USERS")){
-                try{
+            else if (type.equals("SHOW_VIP_USERS")) {
+                try {
                     JSONObject sendMessage = new JSONObject();
-                    JSONArray jsonArray = new JSONArray(vipUsers);
-                    sendMessage.put("TYPE","VIP_USERS");
-                    sendMessage.put("DATA",jsonArray);
+                    //System.out.println(vipUsers.getAllVIPUsers());
+
+                    //获取的json文件格式无法put，所以转换为string格式
+                    String result = vipUsers.getAllVIPUsers().toString();
+                    //System.out.println(result);
+                    sendMessage.put("TYPE", "VIP_USERS");
+                    sendMessage.put("DATA", result);
+                    //System.out.println(sendMessage);
                     writer.println(sendMessage);
-                }catch(Exception e){
+                } catch (Exception e) {
                     writer.println("{\"TYPE\":\"FAILURE\"}");
                 }
             }

@@ -9,8 +9,13 @@
   前往 www.h2database.com/ 下载安装得到`h2-202X-XX-XX.zip`,具体文件名因发行版本日期而不同, 本例使用`h2-2023-09-17.zip`.  
   将其解压得到`h2`文件夹.
 
-- ### 二、 配置H2驱动数据库
-  
+  在以下网址下载 org.json 库的JAR文件，并将其添加到项目的lib中：
+  https://mvnrepository.com/artifact/org.json/json/20210307
+
+  我已经将这两个JAR文件放在了lib文件夹中。
+
+- ### 二、 配置H2驱动数据库和JSON库
+
   在IDEA内打开项目.  
   在项目目录下新建文件夹`lib`,将`h2`文件夹拷贝到其下.  
   在IDEA菜单栏依次点击`文件(File)`>>`项目结构(Project Structure)`
@@ -20,12 +25,12 @@
   <img src="./images/p2.png" alt="image" style="zoom:50%;" />
   此时点击窗口右下角`应用(Apply)`使变更生效,关闭配置窗口.
 - ### 三、 运行程序
-  
+
   在IDEA项目管理器内进行如下操作.  
   找到`src/ParkingManagementSystem/Main.java`文件,右键点击,选择`运行(run)`
   分别找到`src/ClientSide/Client.java`和`src/ClientSide/ParkingManagementClient.java`用同样方式运行.  
   运行后将会看到终端与窗口内容.
-  
+
 - ### 四、 关闭程序
   关闭程序需要进行如下操作.  
   退出`停车管理系统`.  
@@ -136,9 +141,23 @@ Server response:
 
 <img src="images/9.png" style="zoom:50%;" />
 
-最后如果查询某段时间的总收入，输入起始时间和终止时间，将得到财务总收入
+如果查询某段时间的总收入，输入起始时间和终止时间，将得到财务总收入
 
 <img src="images/10.png" style="zoom:50%;" />
+
+下面是添加vip用户以及查询vip用户的操作
+
+<img src="images/11.png" style="zoom:50%;" />
+
+<img src="images/12.png" style="zoom:50%;" />
+
+<img src="images/13.png" style="zoom:50%;" />
+
+同时当我们的vip用户进行停车操作时，付费会自动减少50%，并且它将会自动会从余额上扣除
+
+![](images/14.png)
+
+
 
 ## 四，关闭停车系统
 

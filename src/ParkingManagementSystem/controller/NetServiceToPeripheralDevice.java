@@ -122,7 +122,7 @@ public class NetServiceToPeripheralDevice implements Runnable {
             } else if (parts[1].equals("out")) {
                 try {
                     ParkingTicket ticket = vehicleProcessor.exitParking(licensePlate);
-                    if(vipUsers.reduceBalance(licensePlate,ticket.getFee())){
+                    if(vipUsers.reduceBalance(licensePlate,ticket.getFee()/2)){
                         writer.println("成功！您好，vip用户，你的用户余额还剩"+
                                 vipUsers.queryTheAmountOfVIPUser(licensePlate));
                         ticket.setFee(ticket.getFee()/2);

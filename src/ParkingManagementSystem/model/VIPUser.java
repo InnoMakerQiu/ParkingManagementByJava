@@ -55,6 +55,6 @@ class VIPUser {
     }
 
     public String toString(){
-        return "licensePlate:"+licensePlate+",balance:"+balance;
+        return licensePlate+","+balance;
     }
 }

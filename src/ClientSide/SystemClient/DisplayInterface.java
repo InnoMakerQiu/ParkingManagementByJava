@@ -6,6 +6,7 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.String;
+import java.util.ArrayList;
 import java.util.Objects;
 
 import org.json.*;
@@ -23,17 +24,21 @@ public class DisplayInterface {
      */
     public static void queryVehicleInParkingLot(String licensePlate) {
         // Send query request to the server
-        Client.sendMessage("QUERY_ENTRY_TIME:" + licensePlate);
+        JSONObject sendMessage = new JSONObject();
+        sendMessage.put("TYPE","QUERY_ENTRY_TIME");
+        sendMessage.put("DATA",licensePlate);
+        Client.sendMessage(sendMessage.toString());
         // Receive response from the server
-        String enterDate = Client.receiveMessage();
-
-        // Display the entry time information or an error message
-        if (enterDate==null||enterDate.equals("Don't found the vehicle")) {
+        JSONObject jsonObject = new JSONObject(Objects.requireNonNull(Client.receiveMessage()));
+        String str = jsonObject.getString("TYPE");
+        System.out.println(str);
+        try {
+            String data = jsonObject.getString("DATA");
+            JOptionPane.showMessageDialog(null, "车辆入库信息：" + "\n" + data,
+                    "停车管理系统", JOptionPane.INFORMATION_MESSAGE);
+        }catch (Exception e){
             JOptionPane.showMessageDialog(null, "未找到相关车辆信息", "停车管理系统",
                     JOptionPane.ERROR_MESSAGE);
-        } else{
-            JOptionPane.showMessageDialog(null, "车辆入库信息：" + "\n" + enterDate,
-                    "停车管理系统", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
@@ -42,12 +47,15 @@ public class DisplayInterface {
      */
     public static void queryParkingLot() {
         // Send query request to the server
-        Client.sendMessage("QUERY_PARKING_LOT:null");
-        // Receive response from the server
-        String message = Client.receiveMessage();
+        JSONObject sendMessage = new JSONObject();
+        sendMessage.put("TYPE","QUERY_PARKING_LOT");
 
+        Client.sendMessage(sendMessage.toString());
+        JSONObject jsonObject = new JSONObject(Objects.requireNonNull(Client.receiveMessage()));
+        String str = jsonObject.getString("TYPE");
+        String message = jsonObject.getString("DATA");
         // Display the parking lot information or an error message
-        if (message != null) {
+        if (message != null && str.equals("PARKING_LOT")) {
             String[] parts = message.split(","); // Assuming data is separated by commas
             int totalParkingSpaces = Integer.parseInt(parts[0]);
             int availableSpaces = Integer.parseInt(parts[1]);
@@ -87,11 +95,20 @@ public class DisplayInterface {
     }
 
     public static void queryTotalRevenue(String startTime,String endTime){
-        Client.sendMessage("QUERY_TOTAL_REVENUE:"+startTime+","+endTime);
-        String revenue = Client.receiveMessage();
+        JSONObject sendMessage = new JSONObject();
+        sendMessage.put("TYPE","QUERY_TOTAL_REVENUE");
+        ArrayList<String> a = new ArrayList<>();
+        a.add(startTime);
+        a.add(endTime);
+        sendMessage.put("DATA",a);
+
+        Client.sendMessage(sendMessage.toString());
+        JSONObject jsonObject = new JSONObject(Objects.requireNonNull(Client.receiveMessage()));
+        String str = jsonObject.getString("TYPE");
+        String data = jsonObject.getString("DATA");
         // Display the parking lot information or an error message
-        if (revenue != null) {
-            JOptionPane.showMessageDialog(null,"总收入为： "+revenue,
+        if (data != null && str.equals("TOTAL_REVENUE")) {
+            JOptionPane.showMessageDialog(null,"总收入为： "+data,
                     "停车管理系统", JOptionPane.INFORMATION_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(null, "网络连接错误", "停车管理系统",
@@ -103,31 +120,37 @@ public class DisplayInterface {
 
     public static void queryVehicleRevenue(String license, String number, JFrame jf){
         jf.setVisible(false);
-        Client.sendMessage("QUERY_VEHICLE_REVENUE:" + license + "," + number);
-        String receivedData = Client.receiveMessage();
-        System.out.println(receivedData);
+
         // Display the parking lot information or an error message
-        if (receivedData != null) {
-            // 解析数据
-            String[] rows = receivedData.split("\\+");
-            String[][] data = new String[rows.length][];
-            for (int i = 0; i < rows.length; i++) {
-                data[i] = rows[i].split(",");
-            }
 
-            JFrame frame = getFrame(data);
+        JSONObject sendMessage = new JSONObject();
+        sendMessage.put("TYPE","QUERY_VEHICLE_REVENUE");
 
-            frame.addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosed(WindowEvent e) {
-                    super.windowClosed(e);
-                    jf.setVisible(true);
-                }
-            });
-        } else {
-            JOptionPane.showMessageDialog(null, "网络连接错误", "停车管理系统",
-                    JOptionPane.ERROR_MESSAGE);
+        sendMessage.put("DATA",license+","+number);
+
+        Client.sendMessage(sendMessage.toString());
+
+        JSONObject jsonObject = new JSONObject(Objects.requireNonNull(Client.receiveMessage()));
+        String message = jsonObject.getString("DATA");
+        message = message.replace("[","");
+        message = message.replace("]","");
+        System.out.println(message);
+        // 解析数据
+        String[] rows = message.split(", ");
+        String[][] data = new String[rows.length][];
+        for (int i = 0; i < rows.length; i++) {
+            data[i] = rows[i].split(",");
         }
+
+        JFrame frame = getFrame(data);
+
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                super.windowClosed(e);
+                jf.setVisible(true);
+            }
+        });
     }
 
     public static void shutDownTheParkingSystem(){
@@ -143,6 +166,101 @@ public class DisplayInterface {
         // 创建一个默认的表格模型
         DefaultTableModel tableModel = new DefaultTableModel(
                 data, new String[]{"License", "Start", "End", "TotalRevenue"}) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // 设置表格不可编辑
+            }
+        };
+
+        // 创建一个 JTable，并使用默认的表格模型
+        JTable table = new JTable(tableModel);
+
+        // 创建一个滚动窗格，并将表格添加到滚动窗格中
+        JScrollPane scrollPane = new JScrollPane(table);
+
+        // 将滚动窗格添加到 JFrame 中
+        frame.add(scrollPane, BorderLayout.CENTER);
+
+        // 设置 JFrame 可见
+        frame.setVisible(true);
+        return frame;
+    }
+
+    public static void queryVIPUsersForForUsersView(JFrame jf){
+        jf.setVisible(false);
+
+        // Send query request to the server
+        Client.sendMessage("{\"TYPE\":\"SHOW_VIP_USERS\"}");
+        // Receive response from the server
+        String receivedData = Client.receiveMessage();
+        if(receivedData!=null) {
+            String[] rows = getStrings(receivedData);
+            System.out.println(rows.length);
+            int k = 0;
+
+            String[][] data = new String[(rows.length) / 2][2];
+            for (int i = 0; i < (rows.length) / 2; i++) {
+                for (int j = 0; j < 2; j++) {
+                    data[i][j] = rows[k];
+                    k++;
+                }
+            }
+
+            JFrame frame = getVIPUsersFrame(data);
+
+            frame.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent e) {
+                    super.windowClosed(e);
+                    jf.setVisible(true);
+                }
+            });
+        }else {
+            JOptionPane.showMessageDialog(null, "网络连接错误", "停车管理系统",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private static String[] getStrings(String receivedData) {
+        JSONObject jsonObject = new JSONObject(receivedData);
+    /*  jsonObject示例如下：{"DATA":"[licensePlate:a,balance:123.0, licensePlate:n,balance:123.0, licensePlate:v,balance:123.0]",
+                            "TYPE":"VIP_USERS"}*/
+        //System.out.println(jsonObject);
+        String message = jsonObject.getString("DATA");
+        /*  message示例如下：[licensePlate:a,balance:123.0, licensePlate:n,balance:123.0, licensePlate:v,balance:123.0] */
+        // System.out.println(message);
+
+        // 删除头部和尾部的 “[” 和 “]”
+        message = message.replaceFirst("\\[", " ");// 使表格数据可以对齐
+        message = message.substring(0, message.length() - 1);
+
+
+        // 解析数据
+        return message.split(",");
+    }
+
+    public static void queryVIPUsersForBalanceAddition(String licensePlate, String amount){
+        Client.sendMessage("{\"TYPE\":\"ADD_VIP_USER\",\"DATA\":"+"\"" + licensePlate + "," +amount+"\""+"}");
+        String receivedData = Client.receiveMessage();
+        if (receivedData != null) {
+            JOptionPane.showMessageDialog(null,receivedData,
+                    "停车管理系统", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(null, "网络连接错误", "停车管理系统",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // 创建一个表格，直观得展示vip用户和vip用户所剩余余额
+    private static JFrame getVIPUsersFrame(String[][] data) {
+        JFrame frame = new JFrame("VIP Users Form");
+        frame.setSize(450, 300);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setLocationRelativeTo(null);
+
+        // 创建一个默认的表格模型
+        DefaultTableModel tableModel = new DefaultTableModel(
+                data, new String[]{"LicensePlate", "Balance"}) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false; // 设置表格不可编辑

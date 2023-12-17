@@ -113,7 +113,7 @@ public class VIPUsers {
      *
      * @return 包含所有VIP用户的列表。
      */
-    List<VIPUser> getAllVIPUsers() {
+    public List<VIPUser> getAllVIPUsers() {
         return vipUsers;
     }
 }
