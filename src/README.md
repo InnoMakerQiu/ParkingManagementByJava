@@ -18,12 +18,12 @@
 
 1. 在 IntelliJ IDEA 中打开项目，并确保已配置 Java SDK。
 2. 打开 `ParkingManagementSystem` 模块，找到 `Main` 类，右键单击该类，
-  选择 "Run Main.main()"启动服务端。
+    选择 "Run Main.main()"启动服务端。
 3. 打开 `ClientSide` 模块，找到 `Client` 和 `ParkingManageClient` 类，
-  右键单击每个类 ，选择 "Run" 启动客户端和外围设备模拟。
-4. 这是我们系统用户客户端的活动图<img src="../images/7.png" style="zoom:50%;" />
+    右键单击每个类 ，选择 "Run" 启动客户端和外围设备模拟。
+4. 这是我们系统用户客户端的活动图<img src="../images/7.png"  />
 
-
+![](../images/15.png)
 
 确保在运行之前已安装项目所需的依赖项，并根据需要进行配置。
 需要配置选项：
